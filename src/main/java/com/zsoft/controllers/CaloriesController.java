@@ -209,10 +209,10 @@ public class CaloriesController {
 
 		if (e.getClass().isAssignableFrom(HttpMessageNotReadableException.class)) {
 			dto.setValidationError(Boolean.TRUE);
-			errors.add("Input message is unparseable.");
+			errors.add("input.message.unparseable.");
 		} else {
 			dto.setSystemError(Boolean.TRUE);
-			errors.add("System exception, report error.");
+			errors.add("system.error");
 		}
 		
 		dto.setErrors(errors);

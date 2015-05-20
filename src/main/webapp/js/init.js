@@ -1,11 +1,12 @@
 jQuery(window).ready(function() {
-	var MEAL_PAGE = 'meal';
-	var WORKOUT_PAGE = 'workout';
 	
+
+		var MEAL_PAGE = 'meal';
+	var WORKOUT_PAGE = 'workout';
 	var currentPage = MEAL_PAGE;
 
 	$('#date-filter').val(moment().format("DD/MMM/YYYY"));
-	
+
 	var table = jQuery('#datatable').DataTable({
 		sDom : 'CT<"clear">flprtip',
 		"ajax" : {
@@ -116,7 +117,7 @@ jQuery(window).ready(function() {
 	});
 
 	$('#save-button').unbind().bind('click', function() {
-		var errors = [];//validateForm();
+		var errors = validateForm();
 		if (errors.length > 0) {
 			var errString = '';
 			for (var error in errors) {
@@ -131,7 +132,7 @@ jQuery(window).ready(function() {
 			$('#error-alert').css('display', 'none');
 			 
 			var id = ($('#input-id').val() != "" ? id = parseInt( $('#input-id').val()) : null);
-			var url = (id == null ?  currentPage + '/save' : currentPage+ '/edit');
+			var url = currentPage + (id == null ? '/save' : '/edit');
 	
 			var obj = {
 				id : id,
@@ -152,10 +153,6 @@ jQuery(window).ready(function() {
 					$('#datetimepicker').val('');
 					$('#myModal').modal('hide');
 					table.ajax.reload();
-				},
-				error : function(xhrResult) {
-					console.log(xhrResult);//responseText
-					//if (xhrResult.status == 400)
 				},
 				dataType : 'json',
 				contentType : 'application/json',
