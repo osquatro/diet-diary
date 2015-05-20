@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd
+	http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.1.xsd
+	http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.0.xsd">
+ 
+ 	<mvc:resources mapping="/js/**" location="/js/"  />
+ 	<mvc:resources mapping="/jquery/**" location="/jquery/" />
+ 	<mvc:resources mapping="/fonts/**" location="/fonts/" />
+ 	<mvc:resources mapping="/css/**" location="/css/" />
+	<mvc:resources mapping="/images/**" location="/images/" />
+	
+	<context:component-scan base-package="com.zsoft" />
+	<context:annotation-config />	
+	<mvc:annotation-driven />
+
+    <bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver" >
+           <property name="prefix">
+              <value>/WEB-INF/jsp/</value>
+           </property>
+           <property name="suffix">
+              <value>.jsp</value>
+           </property>
+     </bean>
+
+	<!-- datasource used by the package to connect to the database -->
+	<bean id="connectionSource" class="com.j256.ormlite.jdbc.JdbcConnectionSource" init-method="initialize">
+		<property name="url" value="jdbc:mysql://localhost:3306/diet_diary" />
+		<!-- probably should use system properties for these too -->
+		<property name="username" value="user" />
+		<property name="password" value="password" />
+	</bean>
+
+
+	<!-- our daos that are created by using the DaoFactory -->
+	<bean id="userDao" class="com.j256.ormlite.spring.DaoFactory" factory-method="createDao">
+		<constructor-arg index="0" ref="connectionSource" />
+		<constructor-arg index="1" value="com.zsoft.dao.entities.User" />
+	</bean>
+
+	<!-- our daos that are created by using the DaoFactory -->
+	<bean id="mealDao" class="com.j256.ormlite.spring.DaoFactory" factory-method="createDao">
+		<constructor-arg index="0" ref="connectionSource" />
+		<constructor-arg index="1" value="com.zsoft.dao.entities.Meal" />
+	</bean>
+
+	<!-- our daos that are created by using the DaoFactory -->
+	<bean id="workoutDao" class="com.j256.ormlite.spring.DaoFactory" factory-method="createDao">
+		<constructor-arg index="0" ref="connectionSource" />
+		<constructor-arg index="1" value="com.zsoft.dao.entities.Workout" />
+	</bean>
+	 
+	<bean id="userService" class="com.zsoft.service.UserServiceImpl">
+		<property name="userDao" ref="userDao"></property>
+	</bean>
+	
+	<bean id="customUserDetailsService" class="com.zsoft.security.CustomUserDetailsService" >
+		<property name="userService" ref="userService"></property>
+	</bean>
+
+	<bean id="authenticationSuccessHandler" class="com.zsoft.security.AuthenticationSuccessHandler" >
+		<property name="userService" ref="userService"></property>
+	</bean>	
+	
+	<!-- Security section -->
+ 	<security:http authentication-manager-ref="im-memory-auth" use-expressions="true">
+    	<security:csrf disabled="true"/>
+    
+     	<security:intercept-url pattern="/js/**" access="permitAll" />
+	    <security:intercept-url pattern="/images/**" access="permitAll" />
+		<security:intercept-url pattern="/css/**" access="permitAll" />
+		<security:intercept-url pattern="/fonts/**" access="permitAll" />
+		<security:intercept-url pattern="/jquery/**" access="permitAll" />
+	    
+        <security:intercept-url pattern="/login" access="permitAll" />
+        <security:intercept-url pattern="/logout" access="permitAll" />
+        
+        <security:intercept-url pattern="/**" access="hasRole('ROLE_USER')" />
+
+        <security:logout logout-success-url="/login" />
+        <security:form-login login-page="/login"
+            authentication-success-handler-ref="authenticationSuccessHandler" 
+           	authentication-failure-url="/login?error=1"
+            username-parameter="username" 
+            password-parameter="password"
+            default-target-url="/meals" />
+        
+        <security:access-denied-handler error-page="/logon?error=2"/>
+        
+ 	</security:http>
+
+  	<security:authentication-manager id="im-memory-auth">
+        <security:authentication-provider user-service-ref="customUserDetailsService" />
+    </security:authentication-manager>
+
+</beans>
